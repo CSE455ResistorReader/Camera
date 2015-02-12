@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical" android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <TextView
+        android:text="@string/resistor_reader"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/textView"
+        android:textSize="50dp"
+        android:layout_alignParentTop="true"
+        android:layout_centerHorizontal="true" />
+
+    <ImageView
+        android:layout_width="300dp"
+        android:layout_height="300dp"
+        android:id="@+id/resistor_thumbnail"
+        android:src="#fff6ff09"
+        android:layout_below="@+id/textView"
+        android:layout_centerHorizontal="true" />
+
+    <TextView
+        android:layout_width="200sp"
+        android:layout_height="50sp"
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:text="@string/results"
+        android:id="@+id/results"
+        android:textSize="50sp"
+        android:layout_below="@+id/resistor_thumbnail"
+        android:layout_centerHorizontal="true"
+        android:textAlignment="center"/>
+
+    <Button
+        android:layout_width="200dp"
+        android:layout_height="100dp"
+        android:text="Back"
+        android:id="@+id/button"
+        android:layout_alignParentBottom="true"
+        android:layout_alignLeft="@+id/results"
+        android:layout_alignStart="@+id/results"
+        android:textSize="30dp" />
+
+</RelativeLayout>

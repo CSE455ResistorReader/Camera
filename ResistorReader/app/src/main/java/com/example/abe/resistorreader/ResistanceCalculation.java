@@ -12,7 +12,7 @@ public class ResistanceCalculation {
         System.out.println("Tolerance is: " + "+/- " + Float.toString(tolerancePercent) + "%");
     }
 
-
+    //Arrays for the different values of resistance and tolerance
     private static int black = 0, brown = 1, red = 2, orange = 3, yellow = 4, green = 5,
             blue = 6, violet = 7, gray = 8, white = 9, gold = 10, silver = 11, none = 12;
 
@@ -25,6 +25,7 @@ public class ResistanceCalculation {
             {7, 10000000}, {8, 100000000}, {9, 1000000000},
     };
 
+    //Floats for the final values
     public static float resistance = 0, tolerance = 0, tolerancePercent = 0;
     public static float upperRange = 0, lowerRange = 0;
 
@@ -32,10 +33,13 @@ public class ResistanceCalculation {
 
     public static void ColorAssign(int first, int second, int third, int fourth) {
 
+        //If the first band is not gold or silver then it does it in the regular order
         if ( first != gold && first != silver && first != none) {
+            //Each for loop checks for every color individually to determine it
             for (int i = 0; i < colors.length; i++) {
                 if (first == colors[i])
                     resistance += colorValues[i][0]; }
+            //The reason for multiple for loops is to ensure it outputs in the correct order
             for (int i = 0; i < colors.length; i++) {
                 if (second == colors[i])
                     resistance += colorValues[i][0] / 10; }
@@ -47,6 +51,7 @@ public class ResistanceCalculation {
                     tolerance += toleranceValue[i]; }
         }
         else {
+            //Remnants from an earlier attempt to change order that I forgot to remove
             int firstTemp = fourth, secondTemp = third, thirdTemp = second, fourthTemp = first;
 
             for (int i = 0; i < colors.length; i++) {
@@ -63,6 +68,7 @@ public class ResistanceCalculation {
                     tolerance += toleranceValue[i]; }
         }
 
+        //Final calculations
         tolerancePercent += tolerance;
         tolerance = tolerance / 100;
         float toleranceRange = resistance * tolerance;

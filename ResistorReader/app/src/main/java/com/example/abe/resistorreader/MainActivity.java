@@ -1,6 +1,7 @@
 package com.example.abe.resistorreader;
 
 import android.app.Activity;
+import android.content.ActivityNotFoundException;
 import android.content.ContentResolver;
 import android.content.Intent;
 import android.graphics.Bitmap;
@@ -22,8 +23,9 @@ import java.io.File;
 
 public class MainActivity extends ActionBarActivity {
 
-    private static String logtag = "CammeraApp";
+    private static String logtag = "CameraApp";
     private static int TAKE_PICTURE = 1;
+    final int PIC_CROP = 2;
     private Uri imageUri;
 
 
@@ -51,6 +53,7 @@ public class MainActivity extends ActionBarActivity {
 
     private View.OnClickListener cameraListener = new View.OnClickListener() {
         public void onClick(View v) {
+            performCrop();
             takePhoto(v);
         }
     };
@@ -61,6 +64,33 @@ public class MainActivity extends ActionBarActivity {
         imageUri = Uri.fromFile(photo);
         intent.putExtra(MediaStore.EXTRA_OUTPUT, imageUri);
         startActivityForResult(intent, TAKE_PICTURE);
+    }
+
+    private void performCrop(){
+        try {
+            //call the standard crop action intent (the user device may not support it)
+            Intent cropIntent = new Intent("com.android.camera.action.CROP");
+            //indicate image type and Uri
+            cropIntent.setDataAndType(imageUri, "image/*");
+            //set crop properties
+            cropIntent.putExtra("crop", "true");
+            //indicate aspect of desired crop
+            cropIntent.putExtra("aspectX", 1);
+            cropIntent.putExtra("aspectY", 1);
+            //indicate output X and Y
+            cropIntent.putExtra("outputX", 256);
+            cropIntent.putExtra("outputY", 256);
+            //retrieve data on return
+            cropIntent.putExtra("return-data", true);
+            //start the activity - we handle returning in onActivityResult
+            startActivityForResult(cropIntent, PIC_CROP);
+        }
+        catch(ActivityNotFoundException anfe){
+            //display an error message
+            String errorMessage = "Whoops - your device doesn't support the crop action!";
+            Toast toast = Toast.makeText(this, errorMessage, Toast.LENGTH_SHORT);
+            toast.show();
+        }
     }
 
     @Override

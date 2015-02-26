@@ -12,26 +12,27 @@
         <ImageView
             android:layout_width="217dp"
             android:layout_height="185dp"
-            android:id="@+id/imageView"
+            android:id="@+id/resultsView"
             android:background="#ffffffff"
             android:layout_gravity="center_horizontal"
             android:layout_marginTop="140dp"
             android:layout_alignParentTop="true"
-            android:layout_centerHorizontal="true" />
+            android:layout_centerHorizontal="true"
+            android:focusableInTouchMode="false" />
 
         <TextView
             android:layout_width="250dp"
             android:layout_height="75dp"
             android:textAppearance="?android:attr/textAppearanceMedium"
-            android:text="Results Here"
-            android:id="@+id/textView"
+            android:text="@string/results"
+            android:id="@+id/resultsText"
             android:background="#ffffffff"
             android:layout_row="13"
             android:layout_column="1"
             android:textColor="#ff000000"
             android:gravity="center"
             android:layout_marginTop="38dp"
-            android:layout_below="@+id/imageView"
+            android:layout_below="@+id/resultsView"
             android:layout_centerHorizontal="true" />
 
     </RelativeLayout>

@@ -1,5 +1,5 @@
 package com.example.abe.resistorreader;
-
+/*
 import android.app.Activity;
 import android.content.ActivityNotFoundException;
 import android.content.ContentResolver;
@@ -8,7 +8,6 @@ import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Environment;
 import android.provider.MediaStore;
-import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
@@ -17,16 +16,16 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.Toast;
-
 import java.io.File;
 
 
-public class MainActivity extends ActionBarActivity {
+public class MainActivity extends Activity {
 
     private static String logtag = "CameraApp";
     private static int TAKE_PICTURE = 1;
-    final int PIC_CROP = 2;
-    private Uri imageUri;
+    final int PIC_CROP = 1;
+    private Uri picUri;
+    Bitmap bitmap;
 
 
     @Override
@@ -34,8 +33,8 @@ public class MainActivity extends ActionBarActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        Button cameraButton = (Button)findViewById(R.id.button_camera);
-        Button resultsButton = (Button)findViewById(R.id.results_btn);
+        Button cameraButton = (Button) findViewById(R.id.button_camera);
+        Button resultsButton = (Button) findViewById(R.id.results_btn);
         cameraButton.setOnClickListener(cameraListener);
         resultsButton.setOnClickListener(resultsListener);
 
@@ -46,8 +45,10 @@ public class MainActivity extends ActionBarActivity {
     {
         resultsListener = new View.OnClickListener() {
             public void onClick(View v) {
-                Toast.makeText(MainActivity.this, "Clicked on Button", Toast.LENGTH_LONG).show();
+                setContentView(R.layout.activity_results);
+
             }
+
         };
     }
 
@@ -55,23 +56,48 @@ public class MainActivity extends ActionBarActivity {
         public void onClick(View v) {
             performCrop();
             takePhoto(v);
+
         }
     };
 
     private void takePhoto(View v) {
         Intent intent = new Intent("android.media.action.IMAGE_CAPTURE");
-        File photo  = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES), "picture.jpg");
-        imageUri = Uri.fromFile(photo);
-        intent.putExtra(MediaStore.EXTRA_OUTPUT, imageUri);
+        File photo = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES), "picture.jpg");
+        picUri = Uri.fromFile(photo);
+        intent.putExtra(MediaStore.EXTRA_OUTPUT, picUri);
         startActivityForResult(intent, TAKE_PICTURE);
     }
 
-    private void performCrop(){
+
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent intent) {
+        super.onActivityResult(requestCode, requestCode, intent);
+
+        if (requestCode == Activity.RESULT_OK) {
+            Uri selectedImage = picUri;
+            getContentResolver().notifyChange(selectedImage, null);
+
+            ImageView imageView = (ImageView) findViewById(R.id.image_camera);
+            ContentResolver cr = getContentResolver();
+            try {
+                bitmap = MediaStore.Images.Media.getBitmap(cr, selectedImage);
+                imageView.setImageBitmap(bitmap);
+                Toast.makeText(MainActivity.this, selectedImage.toString(), Toast.LENGTH_LONG).show();
+            } catch (Exception e) {
+                Log.e(logtag, e.toString());
+            }
+        }
+    }
+
+
+    private void performCrop(Uri picUri){
+        //take care of exceptions
         try {
             //call the standard crop action intent (the user device may not support it)
             Intent cropIntent = new Intent("com.android.camera.action.CROP");
             //indicate image type and Uri
-            cropIntent.setDataAndType(imageUri, "image/*");
+            cropIntent.setDataAndType(picUri, "image/*");
             //set crop properties
             cropIntent.putExtra("crop", "true");
             //indicate aspect of desired crop
@@ -85,6 +111,7 @@ public class MainActivity extends ActionBarActivity {
             //start the activity - we handle returning in onActivityResult
             startActivityForResult(cropIntent, PIC_CROP);
         }
+        //respond to users whose devices do not support the crop action
         catch(ActivityNotFoundException anfe){
             //display an error message
             String errorMessage = "Whoops - your device doesn't support the crop action!";
@@ -92,48 +119,123 @@ public class MainActivity extends ActionBarActivity {
             toast.show();
         }
     }
+}
+*/
 
+//ADD PACKAGE HERE
+
+import android.app.Activity;
+import android.content.ActivityNotFoundException;
+import android.content.Intent;
+import android.graphics.Bitmap;
+import android.net.Uri;
+import android.os.Bundle;
+import android.provider.MediaStore;
+import android.util.Log;
+import android.view.View;
+import android.view.View.OnClickListener;
+import android.widget.Button;
+import android.widget.ImageView;
+import android.widget.Toast;
+
+public class MainActivity extends Activity implements OnClickListener {
+
+    //keep track of camera capture intent
+    final int CAMERA_CAPTURE = 1;
+    //keep track of cropping intent
+    final int PIC_CROP = 2;
+    //captured picture uri
+    private Uri picUri;
+
+    /** Called when the activity is first created. */
     @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent intent){
-        super.onActivityResult(requestCode, requestCode, intent);
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
 
-        if(requestCode  == Activity.RESULT_OK) {
-            Uri selectedImage = imageUri;
-            getContentResolver().notifyChange(selectedImage, null);
+        Button cameraButton = (Button) findViewById(R.id.button_camera);
+        Button resultsButton = (Button) findViewById(R.id.results_btn);
+        cameraButton.setOnClickListener(this);
+        //resultsButton.setOnClickListener(resultsListener);
+    }
 
-            ImageView imageView = (ImageView)findViewById(R.id.image_camera);
-            ContentResolver cr = getContentResolver();
-            Bitmap bitmap;
-
+    /**
+     * Click method to handle user pressing button to launch camera
+     */
+    public void onClick(View v) {
+        if (v.getId() == R.id.button_camera) {
             try {
-                bitmap = MediaStore.Images.Media.getBitmap(cr, selectedImage);
-                imageView.setImageBitmap(bitmap);
-                Toast.makeText(MainActivity.this,selectedImage.toString(), Toast.LENGTH_LONG).show();
-            }catch(Exception e){
-                Log.e(logtag, e.toString());
+                //use standard intent to capture an image
+                Intent captureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+                //we will handle the returned data in onActivityResult
+                startActivityForResult(captureIntent, CAMERA_CAPTURE);
+            }
+            catch(ActivityNotFoundException anfe){
+                //display an error message
+                String errorMessage = "Whoops - your device doesn't support capturing images!";
+                Toast toast = Toast.makeText(this, errorMessage, Toast.LENGTH_SHORT);
+                toast.show();
             }
         }
     }
 
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_main, menu);
-        return true;
+    /**
+     * Handle user returning from both capturing and cropping the image
+     */
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (resultCode == RESULT_OK) {
+            //user is returning from capturing an image using the camera
+            if(requestCode == CAMERA_CAPTURE){
+                //get the Uri for the captured image
+                picUri = data.getData();
+
+                Log.v("CSUSB", data.getDataString());
+                //carry out the crop operation
+                performCrop();
+            }
+            //user is returning from cropping the image
+            else if(requestCode == PIC_CROP){
+                //get the returned data
+                Bundle extras = data.getExtras();
+                //get the cropped bitmap
+                Bitmap thePic = extras.getParcelable("data");
+                //retrieve a reference to the ImageView
+                //ImageView picView = (ImageView)findViewById(R.id.resultsView);
+                //display the returned cropped image
+                //picView.setImageBitmap(thePic);
+            }
+        }
     }
 
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
-
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            return true;
+    /**
+     * Helper method to carry out crop operation
+     */
+    private void performCrop(){
+        //take care of exceptions
+        try {
+            //call the standard crop action intent (the user device may not support it)
+            Intent cropIntent = new Intent("com.android.camera.action.CROP");
+            //indicate image type and Uri
+            cropIntent.setDataAndType(picUri, "image/*");
+            //set crop properties
+            cropIntent.putExtra("crop", "true");
+            //indicate aspect of desired crop
+            cropIntent.putExtra("aspectX", 1);
+            cropIntent.putExtra("aspectY", 1);
+            //indicate output X and Y
+            cropIntent.putExtra("outputX", 256);
+            cropIntent.putExtra("outputY", 256);
+            //retrieve data on return
+            cropIntent.putExtra("return-data", true);
+            //start the activity - we handle returning in onActivityResult
+            startActivityForResult(cropIntent, PIC_CROP);
         }
-
-        return super.onOptionsItemSelected(item);
+        //respond to users whose devices do not support the crop action
+        catch(ActivityNotFoundException anfe){
+            //display an error message
+            String errorMessage = "Whoops - your device doesn't support the crop action!";
+            Toast toast = Toast.makeText(this, errorMessage, Toast.LENGTH_SHORT);
+            toast.show();
+        }
     }
 }

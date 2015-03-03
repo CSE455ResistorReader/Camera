@@ -146,6 +146,9 @@ public class MainActivity extends Activity implements OnClickListener {
     final int PIC_CROP = 2;
     //captured picture uri
     private Uri picUri;
+    //declares the bitmap to store the pic
+    Bitmap thePic;
+
 
     /** Called when the activity is first created. */
     @Override
@@ -198,11 +201,13 @@ public class MainActivity extends Activity implements OnClickListener {
                 //get the returned data
                 Bundle extras = data.getExtras();
                 //get the cropped bitmap
-                Bitmap thePic = extras.getParcelable("data");
+                thePic = extras.getParcelable("data");
+                //change content view
+                setContentView(R.layout.activity_results);
                 //retrieve a reference to the ImageView
-                //ImageView picView = (ImageView)findViewById(R.id.resultsView);
+                ImageView picView = (ImageView)findViewById(R.id.resultsView);
                 //display the returned cropped image
-                //picView.setImageBitmap(thePic);
+                picView.setImageBitmap(thePic);
             }
         }
     }

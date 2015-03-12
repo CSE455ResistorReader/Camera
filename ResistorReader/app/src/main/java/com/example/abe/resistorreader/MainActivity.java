@@ -138,6 +138,14 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.Toast;
 
+import org.opencv.android.OpenCVLoader;
+import org.opencv.android.Utils;
+import org.opencv.core.CvType;
+import org.opencv.core.Mat;
+
+import static org.opencv.imgproc.Imgproc.COLOR_RGB2GRAY;
+import static org.opencv.imgproc.Imgproc.cvtColor;
+
 public class MainActivity extends Activity implements OnClickListener {
 
     //keep track of camera capture intent
@@ -148,18 +156,28 @@ public class MainActivity extends Activity implements OnClickListener {
     private Uri picUri;
     //declares the bitmap to store the pic
     Bitmap thePic;
-
+    //The image we want to display
+    Bitmap displayImage;
+    ImageView picView;
+    //Load OpenCV libraries.
+    static {
+        if(!OpenCVLoader.initDebug()) {
+            Log.d("ERROR", "Unable to load OpenCV");
+        } else {
+            Log.d("SUCCESS", "OpenCV loaded");
+        }
+    }
 
     /** Called when the activity is first created. */
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
         Button cameraButton = (Button) findViewById(R.id.button_camera);
         Button resultsButton = (Button) findViewById(R.id.results_btn);
         cameraButton.setOnClickListener(this);
-        //resultsButton.setOnClickListener(resultsListener);
+        resultsButton.setOnClickListener(this);
+
     }
 
     /**
@@ -191,10 +209,11 @@ public class MainActivity extends Activity implements OnClickListener {
             if(requestCode == CAMERA_CAPTURE){
                 //get the Uri for the captured image
                 picUri = data.getData();
-
                 Log.v("CSUSB", data.getDataString());
                 //carry out the crop operation
                 performCrop();
+                Log.v("CSUSB", data.getDataString());
+                //colorDetect();
             }
             //user is returning from cropping the image
             else if(requestCode == PIC_CROP){
@@ -204,10 +223,11 @@ public class MainActivity extends Activity implements OnClickListener {
                 thePic = extras.getParcelable("data");
                 //change content view
                 setContentView(R.layout.activity_results);
-                //retrieve a reference to the ImageView
-                ImageView picView = (ImageView)findViewById(R.id.resultsView);
                 //display the returned cropped image
-                picView.setImageBitmap(thePic);
+                picView =  (ImageView)findViewById(R.id.resultsView);
+                colorDetect();
+                picView.setImageBitmap(displayImage);
+
             }
         }
     }
@@ -242,5 +262,17 @@ public class MainActivity extends Activity implements OnClickListener {
             Toast toast = Toast.makeText(this, errorMessage, Toast.LENGTH_SHORT);
             toast.show();
         }
+    }
+
+    private void colorDetect() {
+        Mat temp = new Mat (thePic.getWidth(), thePic.getHeight(), CvType.CV_8UC1);
+        Mat PicHSV = new Mat();
+        displayImage = Bitmap.createBitmap(temp.cols(), temp.rows(), Bitmap.Config.ARGB_8888);
+        //Bitmap bitmapPic = MediaStore.Images.Media.getBitmap(this.getContentResolver(), temp);
+        Utils.bitmapToMat(thePic, temp);
+        cvtColor(temp, PicHSV, COLOR_RGB2GRAY);
+        Utils.matToBitmap(PicHSV, displayImage);
+        picView.setImageBitmap(displayImage);
+
     }
 }

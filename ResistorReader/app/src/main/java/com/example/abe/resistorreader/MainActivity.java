@@ -140,11 +140,22 @@ import android.widget.Toast;
 
 import org.opencv.android.OpenCVLoader;
 import org.opencv.android.Utils;
+import org.opencv.core.Core;
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
+import org.opencv.core.Point;
+import org.opencv.core.Scalar;
+import org.opencv.core.Size;
+import org.opencv.imgproc.Imgproc;
+import org.opencv.imgproc.Moments;
 
+import static org.opencv.imgproc.Imgproc.COLOR_BGR2HSV;
 import static org.opencv.imgproc.Imgproc.COLOR_RGB2GRAY;
+import static org.opencv.imgproc.Imgproc.MORPH_ELLIPSE;
 import static org.opencv.imgproc.Imgproc.cvtColor;
+import static org.opencv.imgproc.Imgproc.dilate;
+import static org.opencv.imgproc.Imgproc.erode;
+import static org.opencv.imgproc.Imgproc.getStructuringElement;
 
 public class MainActivity extends Activity implements OnClickListener {
 
@@ -270,8 +281,49 @@ public class MainActivity extends Activity implements OnClickListener {
         displayImage = Bitmap.createBitmap(temp.cols(), temp.rows(), Bitmap.Config.ARGB_8888);
         //Bitmap bitmapPic = MediaStore.Images.Media.getBitmap(this.getContentResolver(), temp);
         Utils.bitmapToMat(thePic, temp);
-        cvtColor(temp, PicHSV, COLOR_RGB2GRAY);
-        Utils.matToBitmap(PicHSV, displayImage);
+
+
+        //cvtColor(temp, PicHSV, COLOR_RGB2GRAY);
+        double iLastX = -1;
+        double iLastY = -1;
+
+
+        Mat imgHSV = new Mat();
+
+        cvtColor(temp, imgHSV, COLOR_BGR2HSV);
+
+        //Search for colors between these HSV values.
+        Core.inRange(imgHSV, new Scalar(40,57,184), new Scalar(179,231,255), imgHSV );
+
+        erode(imgHSV,imgHSV, getStructuringElement(MORPH_ELLIPSE, new Size(5,5)));
+        dilate(imgHSV, imgHSV, getStructuringElement(MORPH_ELLIPSE, new Size(5,5)));
+
+        dilate(imgHSV, imgHSV, getStructuringElement(MORPH_ELLIPSE, new Size(5,5)));
+        erode(imgHSV,imgHSV, getStructuringElement(MORPH_ELLIPSE, new Size(5,5)));
+
+
+        Moments oMoments = Imgproc.moments(imgHSV);
+        double dM01 = oMoments.get_m01();
+        double dM10 = oMoments.get_m10();
+        double dArea = oMoments.get_m00();
+
+        //  if(dArea > 10000)
+        // {
+        double posX = dM10 / dArea;
+        double posY = dM01 / dArea;
+
+        if(iLastX >= 0 && iLastY >= 0 && posX >= 0 && posY >= 0)
+        {
+            Core.line(temp,new Point(posX, posY), new Point(iLastX, iLastY), new Scalar(255,255,100), 20);
+        }
+        iLastX = posX;
+        iLastY = posY;
+        //}
+
+        //     Core.line(temp,new Point(100, 100), new Point(200, 200), new Scalar(255,255,100), 20);
+        Core.line(temp,new Point(posX, posY), new Point(iLastX, iLastY), new Scalar(255,255,100), 20);
+
+        Utils.matToBitmap(temp, displayImage);
         picView.setImageBitmap(displayImage);
 
     }
